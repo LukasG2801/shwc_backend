@@ -1,0 +1,11 @@
+{
+  "packageManager": "npm",
+  "projectName": "shwasenchallenge_backend",
+  "hash": "48fc5157",
+  "backend": {
+    "platform": "node12"
+  },
+  "meta": {
+    "type": "backend"
+  }
+}
