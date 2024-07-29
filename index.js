@@ -9,7 +9,7 @@ const corsOptions = require('./config/cors')
 const connectDB = require('./config/database')
 const credentials = require('./middleware/credentials')
 const errorHandlerMiddleware = require('./middleware/error_handler')
-
+//Test comment
 const app = express()
 
 connectDB()
