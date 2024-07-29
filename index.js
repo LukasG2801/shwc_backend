@@ -19,6 +19,7 @@ app.use(credentials)
 
 // CORS 
 // app.use(cors(corsOptions))
+app.use(cors())
 
 // application.x-www-form-urlencoded
 app.use(express.urlencoded({ extended: false }))
