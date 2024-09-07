@@ -7,15 +7,11 @@ const mongoose = require('mongoose')
 const path = require('path')
 const corsOptions = require('./config/cors')
 const connectDB = require('./config/database')
-const credentials = require('./middleware/credentials')
-const errorHandlerMiddleware = require('./middleware/error_handler')
+
 //Test comment
 const app = express()
 
 connectDB()
-
-//Allow Credentials
-app.use(credentials)
 
 // CORS 
 // app.use(cors(corsOptions))
@@ -30,15 +26,13 @@ app.use(express.json())
 // middleware for cookies
 app.use(cookieParser())
 
-// Default error handler
-app.use(errorHandlerMiddleware)
-
 // static files
 app.use('/static', express.static(path.join(__dirname, 'public')))
 
 app.use('/api/auth', require('./routes/api/auth'))
 app.use('/api/game', require('./routes/api/game'))
 app.use('/api/task', require('./routes/api/task'))
+app.use('/api/team', require('./routes/api/team'))
 
 app.all('*', (req, res) => {
   res.status(404)

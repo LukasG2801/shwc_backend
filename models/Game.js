@@ -7,6 +7,9 @@ const GameSchema = Schema(
         state: {
             type: String,
             required: true
+        },
+        automatictaskdistribution: {
+            type: Schema.Types.Boolean
         }
     }
 )

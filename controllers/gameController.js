@@ -1,4 +1,6 @@
 const Game = require('../models/Game')
+const Task = require('../models/Task')
+const Team = require('../models/Team')
 
 async function create(req, res) {
     const {state} = req.body
@@ -29,6 +31,19 @@ async function getgamedata(req, res) {
 
 async function startGame(req, res) {
     try {
+
+        // Aufgaben verteilen
+        const tasks = await Task.find()
+        const teams = await Team.find()
+
+        tasks.sort(() => Math.random() - 0.5)
+
+        for(let i = 0; i < tasks.length; i++) {
+            const teamIndex = i % teams.length
+            tasks[i].team = teams[teamIndex]._id
+            await tasks[i].save()
+        }
+
         const game = await Game.findOneAndUpdate({}, { state: 'Gestartet' })
 
         return res.status(200).json({'message': 'Spiel gestaret'})
@@ -47,4 +62,15 @@ async function stopGame(req, res) {
     }
 }
 
-module.exports = {create, getgamedata, startGame, stopGame}
+async function setAutomaticDistribution(req, res) {
+    console.log(req.body.automaticdistribution)
+    try {
+        const game = await Game.findOneAndUpdate({}, {automatictaskdistribution: req.body.automaticdistribution})
+        return res.status(200).json({'message': 'Einstellungen gespeichert'})
+    }catch(ex) {
+        return res.status(400).json({'message': ex.message})
+    }
+    
+}
+
+module.exports = {create, getgamedata, startGame, stopGame, setAutomaticDistribution}

@@ -1,30 +1,38 @@
 const User = require('../models/User')
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcrypt')
+const { getall } = require('./taskController')
 
 async function register(req, res) {
-    const {username, email, first_name, last_name, password, password_confirm} = req.body
+    
+    const {username, email, password} = req.body
+    let role = req.body.role
 
-    if(!username || !email || !password || !password_confirm || !first_name || !last_name) return res.status(422).json({'message': 'Invalid fields'})
+    // Check if all required fields are included in the request
+    if(!username || !email || !password) return res.status(422).json({'message': 'Invalid fields'})
 
-    if(password != password_confirm) return res.status(422).json({'message': 'Passwords do not match'})
+    const userExists = await User.exists({ email: email})
 
-    const userExists = await User.exists({ email: email}).exec()
+    // Check if the user already exists
+    if(userExists) return res.status(409).json({'message': 'An User with that email already exists'})
 
-    if(userExists) return res.status(409)
-
+    // if no specific role is given, then set the role to player as standard
+    if(!role) {
+        role = 'player'
+    }
+    console.log(role)
+    // hash the given password and create the new user
     try {
         hashedPassword = await bcrypt.hash(password, 10)
 
         await User.create({
-            email,
             username,
+            email,
             password: hashedPassword,
-            first_name,
-            last_name
-        }).exec()
+            role
+        })
 
-        return res.sendStatus(201)
+        return res.status(201).json({'message': 'User created'})
     }catch(ex) {
         return res.status(400).json({'message': ex.message})
     }
@@ -33,17 +41,22 @@ async function register(req, res) {
 async function login(req, res) {
     const {email, password} = req.body
 
-    if(!email || !password) return res.status(402).json({ 'message': 'Invalid fields'})
+    if(!email || !password) return res.status(402).json({ 'message': 'Either email or password is not given'})
 
+    // Find the user in the database from the given parameters
     const user = await User.findOne({email}).exec()
 
-    if(!user) return res.sendStatus(401)
-
+    // If no user was found, then return
+    if(!user) return res.sendStatus(401).json({ 'message': "No user was found with the given Email" })
+    
+    // Compare the hashed password in db with the given password from the request
     const match = await bcrypt.compare(password, user.password)
 
+    // if the passwords dont match, return
     if(!match) return res.status(401).json({'message': 'Email or password is incorrect'})
-
-    const accessToken = jwt.sign(
+    
+    // create a token for the user
+    const token = jwt.sign(
         {
             id: user.id
         },
@@ -53,21 +66,14 @@ async function login(req, res) {
         }
     )
 
-    const refreshToken = jwt.sign(
-        {
-            id: user.id
-        },
-        process.env.REFRESH_TOKEN_SECRET,
-        {
-            expiresIn: '1d'
-        }
-    )
-
-    user.refresh_token = refreshToken
-    await user.save()
-
-    res.cookie('refresh_token', refreshToken, {httpOnly: true, maxAge: 24*60*60*1000})
-    res.json({access_token: accessToken})
+    // Return the logged in user
+    res.status(200).send({
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        accessToken: token
+    })
 }
 
 async function logout(req, res) {
@@ -122,4 +128,35 @@ async function user(req, res) {
     res.sendStatus(200)
 }
 
-module.exports = {register, login, logout, refresh, user}
+async function getAllUsers(req, res) {
+    try {
+        const users = await User.find()
+        console.log(users)
+        return res.status(200).json(users)
+    }catch(ex) {
+        return res.status(400).json({'message': ex.message})
+    }
+}
+
+async function deleteUser(req, res) {
+    console.log(req.body.id)
+    try {
+        await User.findByIdAndDelete(req.body.id)
+        return res.status(200)
+    }catch(ex) {
+        return res.status(400).json({'message': ex.message})
+    }
+}
+
+async function updateUser(req, res) {
+    console.log(req.body.user)
+
+    try {
+        let user = await User.findOneAndUpdate(req.body.user)
+        return res.status(200).json(user)
+    }catch(ex) {
+        return res.status(400).json({'message': ex.message})
+    }
+}
+
+module.exports = {register, login, logout, refresh, user, getAllUsers, deleteUser, updateUser}

@@ -11,6 +11,9 @@ const TaskSchema = Schema(
         desc: {
             type: String,
             required: true
+        },
+        team: {
+            type: mongoose.ObjectId
         }
     }
 )
