@@ -14,6 +14,9 @@ const TaskSchema = Schema(
         },
         team: {
             type: mongoose.ObjectId
+        },
+        checked: {
+            type: Boolean
         }
     }
 )

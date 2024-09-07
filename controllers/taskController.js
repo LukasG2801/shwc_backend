@@ -1,5 +1,6 @@
 const Task = require('../models/Task')
 const Team = require('../models/Team')
+const User = require('../models/User')
 
 async function getall(req, res) {
 
@@ -50,4 +51,56 @@ async function create(req, res) {
     }
 }
 
-module.exports = {create, getall}
+async function getUserTasks(req, res) {
+    const userid = req.body.user._id
+
+    try {
+        let user = await User.findOne({ userid })
+
+        if(user) {
+            let team = user.team
+    
+            if(team) {
+                let tasks = await Task.find({ team: team})
+        
+                return res.status(200).json(tasks);
+            }else {
+                return res.status(400).json({'message': 'Du bist noch keinem Team zugewiesen'})
+            }
+        }else {
+            return res.status(400).json({'message': 'User nicht gefunden'})
+        }
+    }catch(ex) {
+        return res.status(400).json({'message': ex.message})
+    }
+
+}
+
+async function checkUncheckTask(req, res) {
+    const taskid = req.body.task._id;
+
+    try {
+        if(taskid) {
+            // Finde die aktuelle Task
+            const task = await Task.findById(taskid);
+
+            // Überprüfen, ob die 'checked'-Property existiert; falls nicht, als 'false' behandeln
+            const currentCheckedValue = task.checked !== undefined ? task.checked : false;
+
+            // Umdrehen des 'checked' Werts
+            const newCheckedValue = !currentCheckedValue;
+
+            // Führe das Update durch und füge die 'checked'-Property hinzu, wenn sie nicht existiert
+            await Task.findOneAndUpdate({ _id: taskid }, { checked: newCheckedValue });
+
+            // Rückgabe einer Bestätigung oder der aktualisierten Aufgabe
+            res.status(200).json({ message: 'Task updated', checked: newCheckedValue });
+        } else {
+            res.status(400).json({ message: 'Task ID is missing' });
+        }
+    } catch (ex) {
+        res.status(500).json({ message: 'An error occurred', error: ex });
+    }
+}
+
+module.exports = {create, getall, getUserTasks}
