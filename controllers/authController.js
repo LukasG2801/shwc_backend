@@ -2,6 +2,7 @@ const User = require('../models/User')
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcrypt')
 const { getall } = require('./taskController')
+const Team = require('../models/Team')
 
 async function register(req, res) {
     
@@ -20,7 +21,7 @@ async function register(req, res) {
     if(!role) {
         role = 'player'
     }
-    console.log(role)
+
     // hash the given password and create the new user
     try {
         hashedPassword = await bcrypt.hash(password, 10)
@@ -48,7 +49,17 @@ async function login(req, res) {
 
     // If no user was found, then return
     if(!user) return res.sendStatus(401).json({ 'message': "No user was found with the given Email" })
-    
+        
+    let teamname = ''
+
+    if(user.team) {
+        let team = await Team.findOne({ _id: user.team})
+        
+        if(team) {
+            teamname = team.teamname
+        }
+    }
+
     // Compare the hashed password in db with the given password from the request
     const match = await bcrypt.compare(password, user.password)
 
@@ -72,6 +83,8 @@ async function login(req, res) {
         username: user.username,
         email: user.email,
         role: user.role,
+        team: user.team,
+        teamname: teamname,
         accessToken: token
     })
 }
@@ -131,7 +144,6 @@ async function user(req, res) {
 async function getAllUsers(req, res) {
     try {
         const users = await User.find()
-        console.log(users)
         return res.status(200).json(users)
     }catch(ex) {
         return res.status(400).json({'message': ex.message})
@@ -139,7 +151,6 @@ async function getAllUsers(req, res) {
 }
 
 async function deleteUser(req, res) {
-    console.log(req.body.id)
     try {
         await User.findByIdAndDelete(req.body.id)
         return res.status(200)
@@ -149,7 +160,6 @@ async function deleteUser(req, res) {
 }
 
 async function updateUser(req, res) {
-    console.log(req.body.user)
 
     try {
         let user = await User.findOneAndUpdate(req.body.user)

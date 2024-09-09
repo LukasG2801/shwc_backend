@@ -9,6 +9,9 @@ router.get('/openplayers', teamControllers.getAllUnassignedPlayers)
 router.post('/assignplayertoteam', teamControllers.assignPlayerToTeam)
 router.post('/removeplayerfromteam', teamControllers.removePlayerFromTeam)
 router.post('/namefromid', teamControllers.nameFromId)
+router.post('/getteammembers', teamControllers.getTeamMembers)
+router.post('/getteamforuser', teamControllers.getTeamForUser)
+router.post('/deleteteam', teamControllers.deleteTeam)
 
 module.exports = router
 

@@ -1,5 +1,6 @@
 const Team = require('../models/Team')
 const User = require('../models/User')
+const Task = require('../models/Task')
 
 async function getall(req, res) {
 
@@ -101,8 +102,76 @@ async function nameFromId(req, res) {
     let id = req.body.id
     console.log(id)
     let team = await Team.findOne( { _id: id })
-
-    console.log(team)
 }
 
-module.exports = {create, getall, getAllUnassignedPlayers, assignPlayerToTeam, getAllWithPlayers, removePlayerFromTeam, nameFromId}
+async function getTeamMembers(req, res) {
+
+    let userid = req.body.user.id
+
+    try {
+        let user = await User.findOne({ _id: userid })
+
+        if(user.team) {
+            let team = user.team
+
+            let teammembers = await User.find({ team: team })
+    
+            return res.status(200).json(teammembers)
+        } 
+
+    }catch(ex) {
+
+    }
+}
+
+async function getTeamForUser(req, res) {
+
+    let userid = req.body.user.id
+
+    try {
+        let user = await User.findOne({ _id: userid })
+
+        if(user.team) {
+            let teamid = user.team
+            
+            let team = await Team.findOne({ _id: teamid })
+            
+            return res.status(200).json({ 'team': team.teamname })
+        }else {
+            return res.status(200).json({ 'team': 'Keinem Team zugewiesen' })
+        }
+
+    }catch(ex) {
+        return res.status(400).json({'message': ex.message}) 
+    }
+}
+
+async function deleteTeam(req, res) {
+    try {
+        let teamid = req.body.team.team._id;  // Die Team-ID extrahieren
+        console.log("Teamid: " + teamid);
+
+        if (teamid) {
+            // 1. Alle Benutzer aktualisieren, die zu diesem Team gehören, indem das 'team'-Feld geleert wird
+            await User.updateMany({ team: teamid }, { $unset: { team: "" } });
+            await Task.updateMany({ team: teamid }, { $unset: { team: "" } });
+
+            // 2. Das Team in der Datenbank löschen
+            const deletedTeam = await Team.findOneAndDelete({ _id: teamid });
+
+            if (!deletedTeam) {
+                return res.status(404).json({ message: 'Team not found' });
+            }
+
+            return res.status(200).json({ message: 'Team deleted' });
+        } else {
+            return res.status(400).json({ message: 'Invalid team ID' });
+        }
+    } catch (ex) {
+        console.error(ex);
+        return res.status(500).json({ message: ex.message });
+    }
+}
+
+
+module.exports = {create, getall, getAllUnassignedPlayers, assignPlayerToTeam, getAllWithPlayers, removePlayerFromTeam, nameFromId, getTeamMembers, getTeamForUser, deleteTeam}
