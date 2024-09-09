@@ -42,13 +42,13 @@ async function register(req, res) {
 async function login(req, res) {
     const {email, password} = req.body
 
-    if(!email || !password) return res.status(402).json({ 'message': 'Either email or password is not given'})
+    if(!email || !password) return res.status(402).json({ 'message': 'Masken-Nr. oder Passwort wurde nicht angegeben'})
 
     // Find the user in the database from the given parameters
     const user = await User.findOne({email}).exec()
 
     // If no user was found, then return
-    if(!user) return res.sendStatus(401).json({ 'message': "No user was found with the given Email" })
+    if(!user) return res.sendStatus(401).json({ 'message': "Unter dieser Mail wurde kein Benutzer gefunden" })
         
     let teamname = ''
 
@@ -64,7 +64,7 @@ async function login(req, res) {
     const match = await bcrypt.compare(password, user.password)
 
     // if the passwords dont match, return
-    if(!match) return res.status(401).json({'message': 'Email or password is incorrect'})
+    if(!match) return res.status(401).json({'message': 'Masken-Nr. oder Passwort sind nicht korrekt'})
     
     // create a token for the user
     const token = jwt.sign(
