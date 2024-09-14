@@ -15,7 +15,7 @@ async function register(req, res) {
     const userExists = await User.exists({ email: email})
 
     // Check if the user already exists
-    if(userExists) return res.status(409).json({'message': 'An User with that email already exists'})
+    if(userExists) return res.status(409).json({'message': 'Ein Benutzer mit dieser Email existiert bereits'})
 
     // if no specific role is given, then set the role to player as standard
     if(!role) {
@@ -160,9 +160,17 @@ async function deleteUser(req, res) {
 }
 
 async function updateUser(req, res) {
+    console.log(req.body.user)
 
+    let userid = req.body.user._id || req.body.user.id
     try {
-        let user = await User.findOneAndUpdate(req.body.user)
+        let user = await User.findOneAndUpdate({_id: userid }, {
+            username: req.body.user.username,
+            email: req.body.user.email,
+            password: req.body.user.password,
+            role: req.body.user.role,
+            team: req.body.user.team
+        })
         return res.status(200).json(user)
     }catch(ex) {
         return res.status(400).json({'message': ex.message})
