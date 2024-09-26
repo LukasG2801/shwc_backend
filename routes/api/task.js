@@ -11,6 +11,7 @@ router.post('/resubmittask', verifyToken, taskControllers.reSubmitTask)
 router.post('/checktask', verifyToken, taskControllers.checkTask)
 router.post('/updatetask', verifyToken, taskControllers.updateTask)
 router.post('/deletetask', verifyToken, taskControllers.deleteTask)
+router.post('/changeassignment', verifyToken, taskControllers.changeTeamAssignment)
 router.get('/taskstoreview', verifyToken, taskControllers.getTasksToReview)
 router.get('/actualscore', verifyToken, taskControllers.getActualScore)
 

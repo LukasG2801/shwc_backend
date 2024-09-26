@@ -221,4 +221,17 @@ async function getActualScore(req, res) {
     }
 }
 
-module.exports = {create, getall, getUserTasks, submitTask, reSubmitTask, getTasksToReview, checkTask, updateTask, deleteTask, getActualScore}
+async function changeTeamAssignment(req, res) {
+    let taskid = req.body.taskid
+    let teamid = req.body.teamid
+
+    try {   
+        await Task.findByIdAndUpdate(taskid, { team: teamid })
+        return res.status(200).json({'message': 'Teamzuweisung geändert'})
+    }catch(ex) {
+        return res.status(400).json({'message': ex.message}) 
+    }
+
+}
+
+module.exports = {changeTeamAssignment, create, getall, getUserTasks, submitTask, reSubmitTask, getTasksToReview, checkTask, updateTask, deleteTask, getActualScore}
