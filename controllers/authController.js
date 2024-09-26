@@ -40,53 +40,65 @@ async function register(req, res) {
 }
 
 async function login(req, res) {
-    const {email, password} = req.body
+    try {
+        const { email, password } = req.body;
 
-    if(!email || !password) return res.status(402).json({ 'message': 'Masken-Nr. oder Passwort wurde nicht angegeben'})
-
-    // Find the user in the database from the given parameters
-    const user = await User.findOne({email}).exec()
-
-    // If no user was found, then return
-    if(!user) return res.sendStatus(401).json({ 'message': "Unter dieser Mail wurde kein Benutzer gefunden" })
-        
-    let teamname = ''
-
-    if(user.team) {
-        let team = await Team.findOne({ _id: user.team})
-        
-        if(team) {
-            teamname = team.teamname
+        if (!email || !password) {
+            return res.status(402).json({ message: 'Masken-Nr. oder Passwort wurde nicht angegeben' });
         }
+
+        // Find the user in the database from the given parameters
+        const user = await User.findOne({ email }).exec();
+
+        // If no user was found, then return
+        if (!user) {
+            return res.status(401).json({ message: "Unter dieser Mail wurde kein Benutzer gefunden" });
+        }
+
+        let teamname = '';
+
+        if (user.team) {
+            let team = await Team.findOne({ _id: user.team });
+
+            if (team) {
+                teamname = team.teamname;
+            }
+        }
+
+        // Compare the hashed password in db with the given password from the request
+        const match = await bcrypt.compare(password, user.password);
+
+        // if the passwords dont match, return
+        if (!match) {
+            return res.status(401).json({ message: 'Masken-Nr. oder Passwort sind nicht korrekt' });
+        }
+
+        // create a token for the user
+        const token = jwt.sign(
+            {
+                id: user.id
+            },
+            process.env.ACCESS_TOKEN_SECRET,
+            {
+                expiresIn: '1800s'
+            }
+        );
+
+        // Return the logged in user
+        return res.status(200).json({
+            id: user._id,
+            username: user.username,
+            email: user.email,
+            role: user.role,
+            team: user.team,
+            teamname: teamname,
+            accessToken: token
+        });
+    } catch (error) {
+        // Catch any unexpected errors and return a 500 response
+        console.error('Login Error:', error);
+        return res.status(500).json({ message: 'Ein Fehler ist aufgetreten' });
     }
-
-    // Compare the hashed password in db with the given password from the request
-    const match = await bcrypt.compare(password, user.password)
-
-    // if the passwords dont match, return
-    if(!match) return res.status(401).json({'message': 'Masken-Nr. oder Passwort sind nicht korrekt'})
-    
-    // create a token for the user
-    const token = jwt.sign(
-        {
-            id: user.id
-        },
-        process.env.ACCESS_TOKEN_SECRET,
-        {
-            expiresIn: '1800s'
-        }
-    )
-
-    // Return the logged in user
-    res.status(200).send({
-        id: user._id,
-        username: user.username,
-        email: user.email,
-        role: user.role,
-        team: user.team,
-        teamname: teamname,
-        accessToken: token
-    })
 }
 
 async function logout(req, res) {
