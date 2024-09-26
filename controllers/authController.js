@@ -165,7 +165,7 @@ async function getAllUsers(req, res) {
 async function deleteUser(req, res) {
     try {
         await User.findByIdAndDelete(req.body.id)
-        return res.status(200)
+        return res.status(200).json({'message': 'Benutzer gelöscht'})
     }catch(ex) {
         return res.status(400).json({'message': ex.message})
     }
