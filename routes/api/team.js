@@ -12,6 +12,7 @@ router.post('/namefromid', teamControllers.nameFromId)
 router.post('/getteammembers', teamControllers.getTeamMembers)
 router.post('/getteamforuser', teamControllers.getTeamForUser)
 router.post('/deleteteam', teamControllers.deleteTeam)
+router.post('/changename', teamControllers.changeTeamName)
 
 module.exports = router
 

@@ -173,5 +173,19 @@ async function deleteTeam(req, res) {
     }
 }
 
+async function changeTeamName(req, res) {
+    console.log(req.body.teamid, req.body.newName)
+    
+    let teamid = req.body.teamid
+    let newName = req.body.newName
 
-module.exports = {create, getall, getAllUnassignedPlayers, assignPlayerToTeam, getAllWithPlayers, removePlayerFromTeam, nameFromId, getTeamMembers, getTeamForUser, deleteTeam}
+    try {   
+        await Team.findByIdAndUpdate(teamid, { teamname: newName })
+        return res.status(200).json({'message': 'Team geändert'})
+    }catch(ex) {
+        return res.status(400).json({'message': ex.message}) 
+    }
+}
+
+
+module.exports = {changeTeamName, create, getall, getAllUnassignedPlayers, assignPlayerToTeam, getAllWithPlayers, removePlayerFromTeam, nameFromId, getTeamMembers, getTeamForUser, deleteTeam}
